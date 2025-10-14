@@ -90,6 +90,11 @@ library("hms")
 ```{r}
 # Almacenamos las horas como horas y no como texto
 DFP1_11122015.124700_A$HORA <- hms::as_hms(DFP1_11122015.124700_A$HORA)
+
+# Guardamos la tabla modificada en un fichero
+nombre_Fichero <- "DFP1_11122015.124700_Modificada"
+file.create("DFP1_11122015.124700_Modificada")
+save(DFP1_11122015.124700_A, file = nombre_Fichero, ascii = T)
 ```
 
 
@@ -99,6 +104,12 @@ Inspecciona los datos con `str`, `head`, `tail` y `summary`.
 
 ```{r}
 # str, head, tail, summary
+str(DFP1_11122015.124700_A)
+summary(DFP1_11122015.124700_A)
+
+n = 5
+head(DFP1_11122015.124700_A, n)
+tail(DFP1_11122015.124700_A, n)
 ```
 
 
@@ -117,6 +128,13 @@ Otra opción es usar la librería `readr` para especificar directamente el tipo 
 ```{r}
 library(readr)
 filename <- "data/BreadBasket_DMS.csv"
+library(readr)
+BreadBasket_DMS <- read_csv("data/BreadBasket_DMS.csv", 
+    col_types = cols(Date = col_date(format = "%Y-%m-%d"), 
+        Time = col_time(format = "%H:%M:%S")))
+
+file.create(file = "BreadBasket")
+save(BreadBasket_DMS, file = "BreadBasket", ascii = T)
 ```
 
 ## Inspección de los datos
