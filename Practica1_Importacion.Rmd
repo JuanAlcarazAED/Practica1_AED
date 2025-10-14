@@ -77,7 +77,21 @@ DFP1_11122015.124700_A <- read.delim("./data/DFP1_11122015 124700.csv")
 
 # Ahora con la función read.csv
 DFP1_11122015.124700_B <- read.csv(file = ruta_local, stringsAsFactors = F, sep="\t")
+
+# Convertimos las fechas en texto ha fechas de verdad
+DFP1_11122015.124700_A$FECHA <- as.POSIXlt(DFP1_11122015.124700_A$FECHA, format = "%d/%m/%Y")
+
 ```
+
+```{r}
+# Debemos importar una librería, la hms
+library("hms")
+```
+```{r}
+# Almacenamos las horas como horas y no como texto
+DFP1_11122015.124700_A$HORA <- hms::as_hms(DFP1_11122015.124700_A$HORA)
+```
+
 
 ## Inspección de los datos
 
