@@ -156,6 +156,8 @@ Intenta descargar el fichero directamente desde la ruta [http://staff.bath.ac.uk
 1.  Leer el fichero con `read_sav`.
 2.  Guardar el data frame con `save`.
 
+\<font color="red"\>Para la impotación en realidad en mejor paquete es \`rio\`\<\\font\>
+
 ```{r}
 library(haven)
 filename <- "data/PsychBike.sav"
@@ -212,7 +214,7 @@ textoJSON <- read_file(file = "./data/FileCodificado.json")
 FicheroCodificado_2 <- fromJSON(textoJSON)
 ```
 
-<font color="red">NO HACER NUNCA `x <- load("File.Rdata")`<\font>
+<font color="red">NO HACER NUNCA `x <- load("File.Rdata")`\<\font\>
 
 ## Inspección de los datos
 
@@ -282,7 +284,18 @@ df
 # Conviene limpiar primero un poco => eliminar is.na, etc.
 df[!is.na(df[1]),1]
 df[!is.na(df[1]),]
+# Se puede hacer mejor y quitar todas las instancias con NA
+
 # head, tail, str, summary
+str(df)
+summary(df)
+n <- 5
+head(df, n)
+tail(df, n)
+```
+
+```{r}
+df[!is.na(df[1]),]
 ```
 
 # Fichero *subjectInfo.xlsx*
@@ -291,6 +304,20 @@ df[!is.na(df[1]),]
 
 ```{r}
 filename <- "data/subjectInfo.xlsx"
+
+library(readxl)
+subjectInfo_Hoja1 <- read_excel("data/subjectInfo.xlsx", sheet = 1)
+subjectInfo_Hoja2 <- read_excel("data/subjectInfo.xlsx", sheet = 2)
+subjectInfo_Hoja3 <- read_excel("data/subjectInfo.xlsx", sheet = 3)
+subjectInfo_Hoja4 <- read_excel("data/subjectInfo.xlsx", sheet = 4)
+nombres_Hojas = excel_sheets("data/subjectInfo.xlsx")
+
+df <- list()
+n <- 1
+for (nombre in nombres_Hojas){
+  df[[n]] <- read_excel("data/subjectInfo.xlsx", sheet = nombre)
+  n <- n+1
+}
 ```
 
 1.  Leer cada hoja (hasta 4) en data frames separados (`Hoja1`, `Hoja2`, ...) usando `read_excel` y el parámetro `sheet`.
