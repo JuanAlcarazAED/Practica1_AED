@@ -124,8 +124,7 @@ Otra opción es usar la librería `readr` para especificar directamente el tipo 
 
 ```{r}
 library(readr)
-filename <- "data/BreadBasket_DMS.csv"
-library(readr)
+
 BreadBasket_DMS <- read_csv("data/BreadBasket_DMS.csv", 
     col_types = cols(Date = col_date(format = "%Y-%m-%d"), 
         Time = col_time(format = "%H:%M:%S")))
@@ -156,14 +155,12 @@ Intenta descargar el fichero directamente desde la ruta [http://staff.bath.ac.uk
 1.  Leer el fichero con `read_sav`.
 2.  Guardar el data frame con `save`.
 
-\<font color="red"\>Para la impotación en realidad en mejor paquete es \`rio\`\<\\font\>
-
 ```{r}
 library(haven)
-filename <- "data/PsychBike.sav"
 
 PyschBike <- read_sav(file = "./data/PsychBike.sav")
-PyschBike
+file.create(file = "Pysch_Bike")
+save(PyschBike, file = "Pysch_Bike", ascii = T)
 ```
 
 ## Inspección de los datos
@@ -193,7 +190,7 @@ En R podemos importar ficheros JSON con la librería `jsonlite`. Las funciones m
 
 ## Importar el fichero `FileCodificado.json`
 
-1.  Abrir el fichero `FileCodificado.json` con un editor de texto (el de RStudio vale) para ver qué contiene. Comprobaremos que se puede leer e interepretar con facilidad.
+1.  Abrir el fichero `FileCodificado.json` con un editor de texto (el de RStudio vale) para ver qué contiene. Comprobaremos que se puede leer e interpretar con facilidad.
 2.  Importar el fichero a R con `read_json`. Observar la importancia del parámetro `simplifyVector`.
 3.  Como alternativa, leer el fichero en modo texto con `read_file` de la librería **readr** y después convertir el objeto character a data frame con `fromJSON`.
 4.  Almacenar los resultados en `FileCodificado.RData`.
@@ -202,19 +199,23 @@ En R podemos importar ficheros JSON con la librería `jsonlite`. Las funciones m
 library(jsonlite)
 filename <- 'data/FileCodificado.json'
 
+# El argumento symplifyVector sirve para que los datos se transforme en un dataframe o un vector, se trata de un argumento que por defecto toma el valor FALSE, pero si lo dejamos así al importar
 FicheroCodificado <- read_json("./data/FileCodificado.json")
-# Esto no es lo que queremos
-
+# El resultado es una lista, donde cada elemento es un registro.Esto no es lo que queremos.
+# Repetimos pero ahora cambiando el valor del parámetro
 FicheroCodificado1 <- read_json("./data/FileCodificado.json", simplifyVector = T)
 ```
 
 ```{r}
 # Ahora vamos a explorar otra posibilidad
+
+# Se carga el contenido literal contenido en el fichero
 textoJSON <- read_file(file = "./data/FileCodificado.json")
+# Se utiliza una unción para traducir del lenguaje usado por un json, para extraer los datos y pasarlos a un dataframe
 FicheroCodificado_2 <- fromJSON(textoJSON)
 ```
 
-<font color="red">NO HACER NUNCA `x <- load("File.Rdata")`\<\font\>
+**NO HACER NUNCA `x <- load("File.Rdata")`**
 
 ## Inspección de los datos
 
@@ -234,14 +235,25 @@ tail(FicheroCodificado_2, n)
 Es importante saber cómo exportar datos en este formato.
 
 1.  Almacenar el dataset `iris` en disco con `write_json`. Abrir el fichero con RStudio y comprobar el resultado.
+```{r}
+file.create("Iris_JSON")
+write_json(iris, "./Iris_JSON")
+```
+Se observa que el fichero creado se guarda con el mismo formato visto para el conjunto del apartado anterior, en el que cada registro o sujeto se guarda entre llaves con los nombre de cada variable y el vahlor de estas para el registro. Similar a los diccionarios de Python.
+
 2.  Como alternativa, obtener la representación JSON de los datos con `toJSON` y luego almacenarlos con `write_file`. Observar la diferencia de usar o no el parámetro `pretty` en `toJSON`.
 
 ```{r}
 # 
 file.create("iris_formato_JSON")
 texto <- toJSON(iris)
-write_json(iris, path = "./iris_formato_JSON")
+write_file(texto, file = "./iris_formato_JSON")
+
+file.create("iris_formato_JSON_pretty")
+texto_pretty <- toJSON(iris, pretty = T)
+write_file(texto_pretty, file = "./iris_formato_JSON_pretty")
 ```
+La diferencia entre usar el parámetro `pretty` o no, es que el texto se dispone de forma mucho más legible en el documento, sin esta opción toda la información se coloca sin espacios en una sola fila del archivo.
 
 # Fichero *ERCA.xlsx*
 
