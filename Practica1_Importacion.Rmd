@@ -261,7 +261,7 @@ La diferencia entre usar el parámetro `pretty` o no, es que el texto se dispone
 
 -   Abrir el excel para ver qué pinta tiene.
 -   Como el fichero es muy irregular la función de importación `read_excel` no es capaz de detectar automáticamente los tipos de datos y lo lee todo como caracteres (strings).
--   Fechas: las importa como un string que interpretado como 'numeric' es el número de días transcurridos desde 01-01-1900.
+-   Fechas: las importa como un string que interpretado como `numeric` es el número de días transcurridos desde 01-01-1900.
 -   Si se indica en `col_type` que son `date` los lee bien.
 -   Formatos numéricos: se puede indicar el tipo en `col_type`, o convertirlos después con `as.numeric`.
 -   Guardar datos en formato .RData.
@@ -273,18 +273,32 @@ fname <- "data/ERCA.xlsx"
 # Usaremos la función read_excel de readxl
 df <- read_excel(fname, sheet=2, col_types = c("numeric", "text", "date", "text", "date", rep("guess", 58-5))) # El formato de las fechas no es correcto
 df
-# Columnas date: FECHA*
-# Columnas numeric: COL*, TG, HIDROF, ANTI*, DIURET, IECAS, PESO, TALLA?, HB,
-#                   IST, FERRITINA, UREA, FOSFORO, CALCIO, CICALCET, QUELANTES,
-#                   PTH, BICARBO, ALOPURIN, URICO, PROTEINU*, ALBUMI*, sodio,
-#                   potasio, cloro, HB GLIC, GLUCOSA, PCR
+Columnas_date <- c("FECHA NAC", "FECHA ENTRADA", "FECHA SALIDA", "FECHA CONTROL")
+Columnas_numeric <-  c("COL", "TG", "HIDROF", "ANTI", "DIURET", "IECAS", "PESO", "TALLA", "HB","IST", "FERRITINA", "UREA", "FOSFORO", "CALCIO", "CICALCET", "QUELANTES","PTH", "BICARBO", "ALOPURIN", "URICO", "PROTEINU", "ALBUMI", "sodio", "potasio", "cloro", "HB GLIC", "GLUCOSA", "PCR")
+
+
 # Es más fácil ver cuales NO son 'numeric'.
+ct <- rep(1, length(colnames(df)))
+names(ct) <-  colnames(df)
+
+for (name in names(ct)){
+  if (name %in% Columnas_date){
+    ct[name] <- "date"
+  } else if (name %in% Columnas_numeric){
+    ct[name] <- "numeric"
+  }else{
+    ct[name] <- "guess" 
+  }
+}
+
 # Definir los tipos de datos en 'ct' y releer con 'read_excel'.
-# df <- read_excel(fname, sheet=2, col_types=ct)
+df_2 <- read_excel(fname, sheet=2, col_types=ct)
+df_2
 ```
 
 ```{r}
-# save()
+file.create("./Datos_Dialisis")
+save(df_2, file = "./Datos_Dialisis",ascii = T)
 ```
 
 ## Inspección de los datos
@@ -306,24 +320,30 @@ head(df, n)
 tail(df, n)
 ```
 
-```{r}
-df[!is.na(df[1]),]
-```
-
 # Fichero *subjectInfo.xlsx*
 
 ## Importación del fichero
 
+1.  Leer cada hoja (hasta 4) en data frames separados (`Hoja1`, `Hoja2`, ...) usando `read_excel` y el parámetro `sheet`.
 ```{r}
 filename <- "data/subjectInfo.xlsx"
-
 library(readxl)
 subjectInfo_Hoja1 <- read_excel("data/subjectInfo.xlsx", sheet = 1)
 subjectInfo_Hoja2 <- read_excel("data/subjectInfo.xlsx", sheet = 2)
 subjectInfo_Hoja3 <- read_excel("data/subjectInfo.xlsx", sheet = 3)
 subjectInfo_Hoja4 <- read_excel("data/subjectInfo.xlsx", sheet = 4)
-nombres_Hojas = excel_sheets("data/subjectInfo.xlsx")
+```
 
+2.  Leer todas las hojas automáticamente usando:
+    -   Usando `excel_sheets`: obtén los nombres de las hojas del fichero excel y guardalos en la variable `sheets`.
+    
+```{r}
+nombres_Hojas = excel_sheets("data/subjectInfo.xlsx")
+```
+
+    -   Usando un bucle `for` sobre los nombres devueltos por `excel_sheets`. Guardamos sobre una lista creada con `df <- list()` y añadiendo nuevos elementos con `df[[n]]`, donde `n` es una variable numérica entera o carácter (ojo al doble corchete).
+
+```{r}
 df <- list()
 n <- 1
 for (nombre in nombres_Hojas){
@@ -332,18 +352,30 @@ for (nombre in nombres_Hojas){
 }
 ```
 
-1.  Leer cada hoja (hasta 4) en data frames separados (`Hoja1`, `Hoja2`, ...) usando `read_excel` y el parámetro `sheet`.
-2.  Leer todas las hojas automáticamente usando:
-    -   Usando `excel_sheets`: obtén los nombres de las hojas del fichero excel y guardalos en la variable `sheets`.
-    -   Usando un bucle `for` sobre los nombres devueltos por `excel_sheets`. Guardamos sobre una lista creada con `df <- list()` y añadiendo nuevos elementos con `df[[n]]`, donde `n` es una variable numérica entera o carácter (ojo al doble corchete).
 3.  En lugar de un bucle for usa `lapply`
     -   Recuerda que `lapply` aplica una función a todos los elementos de un vector o lista y devuelve **una lista** con los resultados obtenidos.
     -   Hay que definir una función que llame a `read_excel` y que tome como parámetro la hoja a leer.
+
+```{r}
+Importar_Hoja_Excel <- function(nombre_Hoja, nombre_Archivo_Excel = "data/subjectInfo.xlsx"){
+  return(read_excel(nombre_Archivo_Excel, sheet = nombre_Hoja))
+}
+
+Hojas <- lapply(nombres_Hojas, Importar_Hoja_Excel)
+```
+
     -   La lista de devuelta por `lapply` no tiene nombres. Podemos nombrar esta lista con `names(x) <- sheets`, donde `x` es la lista obtenida con `lapply`, y `sheets` los nombres de las hojas obtenidas con excel_sheets\`.
+  
+```{r}
+names(Hojas) <- nombres_Hojas
+```
+
+    
 4.  Como siempre al final guardamos el resultado con `save`.
 
 ```{r}
-# save()
+file.create("Informacion_Sujetos")
+save(Hojas, file = "Informacion_Sujetos")
 ```
 
 ## Inspección de los datos
@@ -351,5 +383,16 @@ for (nombre in nombres_Hojas){
 Inspecciona los datos con `str` (jugar con `max.level`), `head`, `tail` y `summary`.
 
 ```{r}
-# str, head, tail, summary
+# Con max.level, le podemos decir que nos de la estructura de los elementos de la lista
+str(Hojas, max.level = 3)
+n <- 5
+for (tabla in Hojas){
+  print("----------------------------")
+  print(summary(tabla))
+  head(tabla, n)
+  tail(tabla, n)
+}
+
+
+
 ```
